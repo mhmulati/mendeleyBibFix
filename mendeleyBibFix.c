@@ -81,10 +81,10 @@
 */
 
 #include <stdio.h>
-#include <stdlib.h> // for exit(), malloc
-#include <string.h> // for strcpy()
-#include <stdbool.h> // for C++ bool naming, requires C99
-#include <time.h> // For time record keeping
+#include <stdlib.h>   // for exit(), malloc
+#include <string.h>   // for strcpy()
+#include <stdbool.h>  // for C++ bool naming, requires C99
+#include <time.h>     // For time record keeping
 
 #define BIB_TYPE_MAX 25
 
@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
 	bool bUrlException;
 	char bibType[BIB_TYPE_MAX];
 	
-	char INPUT_DEFAULT[] = "library.bib";
+	char INPUT_DEFAULT[]  = "library.bib";
 	char OUTPUT_DEFAULT[] = "library_fixed.bib";
 
 	char * inputName;
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
 	FILE * outputFile;
 	
 	unsigned long fileLength;
-	unsigned long temp; // Garbage variable for discarded file content length
+	unsigned long temp;  // Garbage variable for discarded file content length
 	char * inputContent;
 	char * outputContent;
 	
@@ -144,10 +144,10 @@ int main(int argc, char *argv[])
 	unsigned long curBibInd, curBibLength, indEOL;
 	
 	// Year-tracking variables
-	bool bHasYear;				// Current entry defined the year
-	bool bHasISSN;				// Current entry defined the year
-	unsigned long issnInd; 		// Index of the issn in the current entry.
-								// This entry is renamed to the year if year is not defined
+	bool bHasYear;          // Current entry defined the year
+	bool bHasISSN;          // Current entry defined the year
+	unsigned long issnInd;  // Index of the issn in the current entry.
+	                        // This entry is renamed to the year if year is not defined
 	
 	// Timer variables
 	clock_t startTime, endTime;
@@ -156,7 +156,8 @@ int main(int argc, char *argv[])
 	if(argc > 2)
 	{
 		inputName = stringWrite(argv[2]);
-	} else
+	}
+	else
 	{
 		inputName = stringWrite(INPUT_DEFAULT);
 	}
@@ -165,7 +166,8 @@ int main(int argc, char *argv[])
 	if(argc > 1)
 	{
 		outputName = stringWrite(argv[1]);
-	} else
+	}
+	else
 	{
 		outputName = stringWrite(OUTPUT_DEFAULT);
 	}
@@ -184,7 +186,7 @@ int main(int argc, char *argv[])
 	fileLength = ftell(inputFile);
 	fseek(inputFile,0,SEEK_SET);
 	inputContent = malloc(fileLength + 1);
-	outputContent = malloc(fileLength + 1); // Output will be no longer than input
+	outputContent = malloc(fileLength + 1);  // Output will be no longer than input
 	if(inputContent == NULL
 		|| outputContent == NULL)
 	{
@@ -202,14 +204,14 @@ int main(int argc, char *argv[])
 	startTime = clock();
 	curInputInd = 0;
 	curInputAnchorInd = 0;
-	outputContent[0] = '\0'; // Initialize output string as empty
+	outputContent[0] = '\0';  // Initialize output string as empty
 	while(true)
 	{
 		// Find start of next entry
 		while(inputContent[curInputInd] != '@')
 		{
 			if(inputContent[curInputInd] == '\0')
-				break; // Reached EOF. No more entries to scan
+				break;  // Reached EOF. No more entries to scan
 			else
 				curInputInd++;
 		}
@@ -227,7 +229,7 @@ int main(int argc, char *argv[])
 				&& (inputContent[curInputInd+1] == '\n'
 				|| inputContent[curInputInd+1] == '\0'))
 				|| inputContent[curInputInd] == '\0')
-				break; // Reached end of current entry (or EOF)
+				break;  // Reached end of current entry (or EOF)
 			else
 				curInputInd++;
 			
@@ -253,7 +255,7 @@ int main(int argc, char *argv[])
 		
 		// curBibEntry is now a valid substring of the original input file
 		// Apply fixes as necessary
-		curBibInd = 1; // We know first character is '@'
+		curBibInd = 1;  // We know first character is '@'
 		
 		// Check URL exception types
 		bUrlException = false;
@@ -269,7 +271,7 @@ int main(int argc, char *argv[])
 		{
 			if(!strcmp(bibType,URL_EXCEPTION_TYPES[curException]))
 			{
-				bUrlException = true; // Current type of entry needs to keep URL
+				bUrlException = true;  // Current type of entry needs to keep URL
 				break;
 			}
 		}
@@ -284,7 +286,8 @@ int main(int argc, char *argv[])
 				// We're at the start of a line in the current bib entry
 				// Scan ahead to see if its an entry that we need to fix
 				if(!strncmp(&curBibEntry[curBibInd+1], "month =",7))
-				{	// Next line lists month. Format should be mmm
+				{
+					// Next line lists month. Format should be mmm
 					// and not {mmm}
 					if(curBibEntry[curBibInd+9] == '{'
 						&& curBibEntry[curBibInd+13] == '}')
@@ -297,8 +300,10 @@ int main(int argc, char *argv[])
 							curBibLength - curBibInd-13);
 						curBibLength -= 2;
 					}
-				} else if(!strncmp(&curBibEntry[curBibInd+1], "title =",7))
-				{ 	// Title is supposed to be surrounded by 1 set of braces and not 2
+				}
+				else if(!strncmp(&curBibEntry[curBibInd+1], "title =",7))
+				{
+					// Title is supposed to be surrounded by 1 set of braces and not 2
 					// Remove extra set of curly braces
 					indEOL = findEndOfLine(curBibEntry, curBibInd+1);
 					// Shift title over extra opening curly brace
@@ -308,44 +313,58 @@ int main(int argc, char *argv[])
 					memmove(&curBibEntry[indEOL-3], &curBibEntry[indEOL-1],
 						curBibLength - indEOL + 2);
 					curBibLength -= 2;
-				} else if(!strncmp(&curBibEntry[curBibInd+1], "annote =",8))
-				{	// Entry has an annotation. Erase the whole field
+				}
+				else if(!strncmp(&curBibEntry[curBibInd+1], "annote =",8))
+				{
+					// Entry has an annotation. Erase the whole field
 					indEOL = findEndOfField(curBibEntry, curBibInd+1);
 					memmove(&curBibEntry[curBibInd+1], &curBibEntry[indEOL+1],
 						curBibLength - indEOL + 1);
 					curBibLength -= indEOL - curBibInd;
-					curBibInd--; // Correct index so that line after annote is read correctly
-				} else if(!strncmp(&curBibEntry[curBibInd+1], "file =",6))
-				{	// Entry has a filename. Erase the whole line
+					curBibInd--;  // Correct index so that line after annote is read correctly
+				}
+				else if(!strncmp(&curBibEntry[curBibInd+1], "file =",6))
+				{
+					// Entry has a filename. Erase the whole line
 					indEOL = findEndOfLine(curBibEntry, curBibInd+1);
 					memmove(&curBibEntry[curBibInd+1], &curBibEntry[indEOL+1],
 						curBibLength - indEOL + 1);
 					curBibLength -= indEOL - curBibInd;
-					curBibInd--; // Correct index so that line after filename is read correctly
-				}else if(!bUrlException
+					curBibInd--;  // Correct index so that line after filename is read correctly
+				}
+				else if(!bUrlException
 					&& !strncmp(&curBibEntry[curBibInd+1], "url =",5))
-				{	// Entry has a URL but it should be removed. Erase the whole line
+				{
+					// Entry has a URL but it should be removed. Erase the whole line
 					indEOL = findEndOfLine(curBibEntry, curBibInd+1);
 					memmove(&curBibEntry[curBibInd+1], &curBibEntry[indEOL+1],
 						curBibLength - indEOL + 1);
 					curBibLength -= indEOL - curBibInd;
-					curBibInd--; // Correct index so that line after URL is read correctly
-				} else if(!strncmp(&curBibEntry[curBibInd+1], "year =",6))
-				{ 	// This entry defines the year
+					curBibInd--;  // Correct index so that line after URL is read correctly
+				}
+				else if(!strncmp(&curBibEntry[curBibInd+1], "year =",6))
+				{
+					// This entry defines the year
 					bHasYear = true;
-				} else if(!strncmp(&curBibEntry[curBibInd+1], "issn =",6))
-				{	// Record line where issn starts in case we need to rename it to the year
+				}
+				else if(!strncmp(&curBibEntry[curBibInd+1], "issn =",6))
+				{
+					// Record line where issn starts in case we need to rename it to the year
 					bHasISSN = true;
 					issnInd = curBibInd + 1;
 				}
-			} else if(!strncmp(&curBibEntry[curBibInd], "{\\{}",4))
-			{ 	// We have an incorrectly formatted opening curly brace
+			}
+			else if(!strncmp(&curBibEntry[curBibInd], "{\\{}",4))
+			{
+				// We have an incorrectly formatted opening curly brace
 				// Remove 3 characters of memory
 				memmove(&curBibEntry[curBibInd+1], &curBibEntry[curBibInd+4],
 					curBibLength - curBibInd-2);
 				curBibLength -= 3;
-			} else if(!strncmp(&curBibEntry[curBibInd], "{\\}}",4))
-			{ 	// We have an incorrectly formatted closing curly brace
+			}
+			else if(!strncmp(&curBibEntry[curBibInd], "{\\}}",4))
+			{
+				// We have an incorrectly formatted closing curly brace
 				// Remove 3 characters of memory
 				curBibEntry[curBibInd] = '}';
 				memmove(&curBibEntry[curBibInd+1], &curBibEntry[curBibInd+4],
@@ -357,7 +376,8 @@ int main(int argc, char *argv[])
 		}
 		
 		if(!bHasYear && bHasISSN)
-		{ // This entry does not define the year. Rename the issn to the year
+		{
+			// This entry does not define the year. Rename the issn to the year
 			curBibEntry[issnInd] = 'y';
 			curBibEntry[issnInd+1] = 'e';
 			curBibEntry[issnInd+2] = 'a';
