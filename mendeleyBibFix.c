@@ -99,6 +99,12 @@ unsigned long findEndOfField(char * str, unsigned long startInd);
 //
 int main(int argc, char *argv[])
 {
+	bool turn_issn_into_missing_year    = false;  // << mhmulati >>
+	bool turn_every_entry_url_exception = true;   // << mhmulati >>
+	bool keep_url_only_if_no_doi        = true;   // << mhmulati >> 
+	bool keep_annote                    = true;   // << mhmulati >>
+	
+
 	// MODIFY THIS BLOCK TO ADD/REMOVE BIB ENTRY TYPES THAT
 	// SHOULD HAVE A URL DISPLAYED. BY DEFAULT, ALL URLS
 	// ARE REMOVED FROM THE BIB-FILE.
@@ -148,6 +154,7 @@ int main(int argc, char *argv[])
 	bool bHasISSN;          // Current entry defined the year
 	unsigned long issnInd;  // Index of the issn in the current entry.
 	                        // This entry is renamed to the year if year is not defined
+	bool has_doi;           // << mhmulati >>
 	
 	// Timer variables
 	clock_t startTime, endTime;
@@ -275,9 +282,12 @@ int main(int argc, char *argv[])
 				break;
 			}
 		}
+
+		bUrlException = bUrlException || turn_every_entry_url_exception;  // << mhmulati >>
 		
 		bHasYear = false;
 		bHasISSN = false;
+		has_doi  = false;  // << mhmulati >>
 		// Scan Remainder of entry
 		while(curBibEntry[curBibInd] != '\0')
 		{
@@ -314,7 +324,7 @@ int main(int argc, char *argv[])
 						curBibLength - indEOL + 2);
 					curBibLength -= 2;
 				}
-				else if(!strncmp(&curBibEntry[curBibInd+1], "annote =",8))
+				else if(!keep_annote && !strncmp(&curBibEntry[curBibInd+1], "annote =",8))  // << mhmulati >>
 				{
 					// Entry has an annotation. Erase the whole field
 					indEOL = findEndOfField(curBibEntry, curBibInd+1);
@@ -323,6 +333,10 @@ int main(int argc, char *argv[])
 					curBibLength -= indEOL - curBibInd;
 					curBibInd--;  // Correct index so that line after annote is read correctly
 				}
+				else if(!strncmp(&curBibEntry[curBibInd+1],"doi =",5))  // << mhmulati >>
+				{                                                       // << mhmulati >>
+					has_doi = true;                                 // << mhmulati >>
+				}                                                       // << mhmulati >>
 				else if(!strncmp(&curBibEntry[curBibInd+1], "file =",6))
 				{
 					// Entry has a filename. Erase the whole line
@@ -332,15 +346,19 @@ int main(int argc, char *argv[])
 					curBibLength -= indEOL - curBibInd;
 					curBibInd--;  // Correct index so that line after filename is read correctly
 				}
-				else if(!bUrlException
-					&& !strncmp(&curBibEntry[curBibInd+1], "url =",5))
+				else if(!strncmp(&curBibEntry[curBibInd+1], "url =",5))                         // << mhmulati >>
 				{
-					// Entry has a URL but it should be removed. Erase the whole line
-					indEOL = findEndOfLine(curBibEntry, curBibInd+1);
-					memmove(&curBibEntry[curBibInd+1], &curBibEntry[indEOL+1],
-						curBibLength - indEOL + 1);
-					curBibLength -= indEOL - curBibInd;
-					curBibInd--;  // Correct index so that line after URL is read correctly
+					// note that doi comes (alfabetically) before the url in the input bib  // << mhmulati >>
+					if(!bUrlException || 
+					   (bUrlException && keep_url_only_if_no_doi && has_doi))               // << mhmulati >>
+					{                                                                       // << mhmulati >>
+						// Entry has a URL but it should be removed. Erase the whole line
+						indEOL = findEndOfLine(curBibEntry, curBibInd+1);
+						memmove(&curBibEntry[curBibInd+1], &curBibEntry[indEOL+1],
+							curBibLength - indEOL + 1);
+						curBibLength -= indEOL - curBibInd;
+						curBibInd--;  // Correct index so that line after URL is read correctly
+					}                                                                       // << mhmulati >>
 				}
 				else if(!strncmp(&curBibEntry[curBibInd+1], "year =",6))
 				{
@@ -375,7 +393,7 @@ int main(int argc, char *argv[])
 			curBibInd++;
 		}
 		
-		if(!bHasYear && bHasISSN)
+		if(turn_issn_into_missing_year && !bHasYear && bHasISSN)  // << mhmulati >>
 		{
 			// This entry does not define the year. Rename the issn to the year
 			curBibEntry[issnInd] = 'y';
