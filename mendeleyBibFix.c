@@ -102,7 +102,8 @@ int main(int argc, char *argv[])
 	bool turn_issn_into_missing_year    = false;  // << mhmulati >>
 	bool turn_every_entry_url_exception = true;   // << mhmulati >>
 	bool keep_url_only_if_no_doi        = true;   // << mhmulati >> 
-	bool keep_annote                    = true;   // << mhmulati >>
+	bool keep_annote                    = false;   // << mhmulati >>
+	bool keep_abstract                  = false;   // << mhmulati >>
 	
 
 	// MODIFY THIS BLOCK TO ADD/REMOVE BIB ENTRY TYPES THAT
@@ -324,9 +325,9 @@ int main(int argc, char *argv[])
 						curBibLength - indEOL + 2);
 					curBibLength -= 2;
 				}
-				else if(!keep_annote && !strncmp(&curBibEntry[curBibInd+1], "annote =",8))  // << mhmulati >>
+				else if((!keep_annote && !strncmp(&curBibEntry[curBibInd+1], "annote =",8)) || (!keep_abstract && !strncmp(&curBibEntry[curBibInd+1], "abstract =",10)))  // << mhmulati >>
 				{
-					// Entry has an annotation. Erase the whole field
+					// Entry has an annotation or abstract. Erase the whole field
 					indEOL = findEndOfField(curBibEntry, curBibInd+1);
 					memmove(&curBibEntry[curBibInd+1], &curBibEntry[indEOL+1],
 						curBibLength - indEOL + 1);
