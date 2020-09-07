@@ -102,8 +102,10 @@ int main(int argc, char *argv[])
 	bool turn_issn_into_missing_year    = false;  // << mhmulati >>
 	bool turn_every_entry_url_exception = true;   // << mhmulati >>
 	bool keep_url_only_if_no_doi        = true;   // << mhmulati >> 
-	bool keep_annote                    = false;   // << mhmulati >>
-	bool keep_abstract                  = false;   // << mhmulati >>
+	bool keep_annote                    = false;  // << mhmulati >>
+	bool keep_abstract                  = false;  // << mhmulati >>
+	bool keep_issn_and_isbn             = false;  // << mhmulati >>
+	bool keep_month                     = false;  // << mhmulati >>
 	
 
 	// MODIFY THIS BLOCK TO ADD/REMOVE BIB ENTRY TYPES THAT
@@ -296,7 +298,7 @@ int main(int argc, char *argv[])
 			{
 				// We're at the start of a line in the current bib entry
 				// Scan ahead to see if its an entry that we need to fix
-				if(!strncmp(&curBibEntry[curBibInd+1], "month =",7))
+				if(!strncmp(&curBibEntry[curBibInd+1], "month =",7) && keep_month)
 				{
 					// Next line lists month. Format should be mmm
 					// and not {mmm}
@@ -325,9 +327,13 @@ int main(int argc, char *argv[])
 						curBibLength - indEOL + 2);
 					curBibLength -= 2;
 				}
-				else if((!keep_annote && !strncmp(&curBibEntry[curBibInd+1], "annote =",8)) || (!keep_abstract && !strncmp(&curBibEntry[curBibInd+1], "abstract =",10)))  // << mhmulati >>
+				else if((!keep_annote        && !strncmp(&curBibEntry[curBibInd+1], "annote =",8)   ) ||  // << mhmulati >> 
+					    (!keep_abstract      && !strncmp(&curBibEntry[curBibInd+1], "abstract =",10)) ||  // << mhmulati >>
+					    (!keep_issn_and_isbn && !strncmp(&curBibEntry[curBibInd+1], "issn =",6)     ) ||  // << mhmulati >>
+					    (!keep_month         && !strncmp(&curBibEntry[curBibInd+1], "month =",7)    ) ||  // << mhmulati >>
+					    (!keep_issn_and_isbn && !strncmp(&curBibEntry[curBibInd+1], "isbn =",6)     ))    // << mhmulati >>
 				{
-					// Entry has an annotation or abstract. Erase the whole field
+					// Entry has an annotation, abstract, issn, or isbn. Erase the whole field  << mhmulati >>
 					indEOL = findEndOfField(curBibEntry, curBibInd+1);
 					memmove(&curBibEntry[curBibInd+1], &curBibEntry[indEOL+1],
 						curBibLength - indEOL + 1);
@@ -336,7 +342,7 @@ int main(int argc, char *argv[])
 				}
 				else if(!strncmp(&curBibEntry[curBibInd+1],"doi =",5))  // << mhmulati >>
 				{                                                       // << mhmulati >>
-					has_doi = true;                                 // << mhmulati >>
+					has_doi = true;                                     // << mhmulati >>
 				}                                                       // << mhmulati >>
 				else if(!strncmp(&curBibEntry[curBibInd+1], "file =",6))
 				{
@@ -366,7 +372,7 @@ int main(int argc, char *argv[])
 					// This entry defines the year
 					bHasYear = true;
 				}
-				else if(!strncmp(&curBibEntry[curBibInd+1], "issn =",6))
+				else if(!strncmp(&curBibEntry[curBibInd+1], "issn =",6) && keep_issn_and_isbn)
 				{
 					// Record line where issn starts in case we need to rename it to the year
 					bHasISSN = true;
